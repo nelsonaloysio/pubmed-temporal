@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from sys import argv
 
-from src.pubmed_temporal.build import (
-    ROOT,
-    build_dataset,
-    download_dataset,
-    get_planetoid_index_map,
-    get_pubmed_metadata
-)
+from src.pubmed_temporal.data import build_data
+from src.pubmed_temporal.graph import download_pubmed_metadata, download_graph_dataset
+
+ROOT = Path(__file__).parent.absolute().__str__()
+
 
 def argparser(args: list = argv[1:]) -> Namespace:
     """ Parse command line arguments. """
-    parser = ArgumentParser(description=str("Query or build temporal dataset from PubMed."))
+    parser = ArgumentParser()
 
     parser.add_argument("--root",
                         action="store",
                         default=ROOT,
                         metavar="PATH",
-                        help=f"Root to save files to (default: '{ROOT}').")
+                        help="Set root directory to save data.")
 
     parser.add_argument("-w", "--max-workers",
                         action="store",
@@ -33,13 +32,11 @@ def argparser(args: list = argv[1:]) -> Namespace:
                         help="Set number of IDs to send to each worker at a time.",
                         type=int)
 
-
     return parser.parse_args(args)
 
 
 if __name__ == "__main__":
     args = argparser()
-    download_dataset(root=args.root)
-    get_pubmed_metadata(root=args.root, max_workers=args.max_workers, chunksize=args.chunksize)
-    get_planetoid_index_map(root=args.root, max_workers=args.max_workers)
-    build_dataset(root=args.root)
+    download_pubmed_metadata(root=args.root, max_workers=args.max_workers, chunksize=args.chunksize)
+    download_graph_dataset(root=args.root)
+    build_data(root=args.root)

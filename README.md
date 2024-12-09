@@ -1,6 +1,6 @@
 # PubMed-Temporal: A dynamic graph dataset with node-level features
 
-[![](https://zenodo.org/badge/DOI/10.5281/zenodo.13932075.svg)](https://doi.org/10.5281/zenodo.13932075)
+[![doi](https://zenodo.org/badge/DOI/10.5281/zenodo.13932075.svg)](https://doi.org/10.5281/zenodo.13932075)
 
 Code to reproduce the temporal split for the PubMed/Planetoid graph dataset.
 
@@ -14,15 +14,23 @@ ___
 
 The dataset is split into train, validation, and test sets based on sequential disjoint time intervals (0.6, 0.2, 0.2).
 
-> Note that the number of edges in the PyTorch Geometric dataset are doubled for the undirected graph.
+|    Graph     |   Split    |  Nodes  |  Edges  |  Class 0  |  Class 1  |  Class 2  |  Time steps  |  Interval (Years)  |
+|:------------:|:----------:|:-------:|:-------:|:---------:|:---------:|:---------:|:------------:|:------------------:|
+|     Full     |    None    |  19717  |  44324  |   4103    |   7739    |   7875    |      42      |    1964 - 2007     |
+| Transductive |   Train    |  11664  |  24645  |   2964    |   3508    |   5192    |      38      |    1964 - 2003     |
+| Transductive | Validation |  3697   |  6592   |    524    |   1803    |   1370    |      22      |    1981 - 2004     |
+| Transductive |    Test    |  9810   |  21276  |   1372    |   4795    |   3643    |      28      |    1980 - 2007     |
+|  Inductive   |   Train    |  11664  |  24645  |   2964    |   3508    |   5192    |      38      |    1964 - 2003     |
+|  Inductive   | Validation |  2093   |  2113   |    297    |   1123    |    673    |      1       |    2004 - 2004     |
+|  Inductive   |    Test    |  5960   |  6928   |    842    |   3108    |   2010    |      3       |    2005 - 2007     |
 
 ### Node time distribution
 
-![Node time distribution by class](extra/fig-0.png)
+![Node time distribution by class](https://github.com/nelsonaloysio/pubmed-temporal/raw/main/extra/fig-0.png)
 
 ### Edge time distribution
 
-![Edge time distribution by mask](extra/fig-1.png)
+![Edge time distribution by mask](https://github.com/nelsonaloysio/pubmed-temporal/raw/main/extra/fig-1.png)
 
 > Note that the first citation occurs in 1967, but the oldest paper is from 1964.
 
@@ -34,7 +42,7 @@ ___
 
 ```python
 from pubmed_temporal import Planetoid
-# from torch_geometric.datasets import Planetoid  # NotImplemented
+# from torch_geometric.datasets import Planetoid  # pyg-team/pytorch_geometric#9982
 
 dataset = Planetoid(name="pubmed", split="temporal")
 data = dataset[0]
@@ -46,13 +54,14 @@ Data(x=[19717, 500], edge_index=[2, 88648], y=[19717], time=[88648],
      train_mask=[88648], val_mask=[88648], test_mask=[88648])
 ```
 
+> Note that the number of edges in PyTorch Geometric are doubled for the undirected graph.
+
 ### NetworkX
 
 ```python
 import networkx as nx
 
 G = nx.read_graphml("pubmed/temporal/graph/pubmed-temporal.graphml")
-# G = nx.read_graphml("pubmed/temporal/graph/pubmed-temporal.gexf")
 print(G)
 ```
 
@@ -60,7 +69,7 @@ print(G)
 DiGraph with 19717 nodes and 44335 edges
 ```
 
-> Note that the directed graph contains 11 additional edges among papers that cite each other.
+> Note that the directed graph contains 11 additional bidirectional edges among co-citing papers.
 
 ___
 
@@ -82,11 +91,9 @@ To build the dataset, the following steps are taken, aside from obtaining the re
 4. Relabel nodes to match Planetoid's index map.
 5. Add weight vectors `x`.
 6. Add classes `y`.
-7. Add time steps `t`.
+7. Add time steps `time`.
 8. Verify if dataset matches Planetoid's.
-9. Save temporal node index and split.
-
-> Note that it might take a few hours to obtain metadata from PubMed, build the index mapping nodes to the Planetoid dataset, and finally process and save the temporal split.
+9. Save data with edge time steps starting from zero.
 
 ___
 

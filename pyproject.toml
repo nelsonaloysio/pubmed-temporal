@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "networkx >=2.1",
-    "pandas >=2.1.4",
+    "pandas >=2.0.3",
     "pubmed-id >=1.0",
     "torch_geometric >=2.4.0"
 ]

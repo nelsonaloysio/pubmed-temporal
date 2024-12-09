@@ -1,5 +1,4 @@
 import os.path as osp
-from pathlib import Path
 from typing import Callable, List, Optional
 
 import numpy as np
@@ -8,10 +7,7 @@ import torch
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.io import fs, read_planetoid_data
 
-ROOT = Path(__file__).parent.parent.parent
 
-
-# https://github.com/pyg-team/pytorch_geometric/issues/9982
 class Planetoid(InMemoryDataset):
     r"""The citation network datasets :obj:`"Cora"`, :obj:`"CiteSeer"` and
     :obj:`"PubMed"` from the `"Revisiting Semi-Supervised Learning with Graph
@@ -95,9 +91,9 @@ class Planetoid(InMemoryDataset):
 
     def __init__(
         self,
-        root: str = ROOT,
-        name: str = 'pubmed',
-        split: str = 'temporal',
+        root: str,
+        name: str,
+        split: str = "public",
         num_train_per_class: int = 20,
         num_val: int = 500,
         num_test: int = 1000,
@@ -108,7 +104,9 @@ class Planetoid(InMemoryDataset):
         self.name = name
 
         self.split = split.lower()
-        assert self.split in ['public', 'full', 'geom-gcn', 'random', 'temporal']
+        assert self.split in [
+            'public', 'full', 'geom-gcn', 'random', 'temporal'
+        ]
         assert self.split != 'temporal' or name.lower() == 'pubmed',\
             'Temporal split is only available for the PubMed dataset.'
 
@@ -179,8 +177,6 @@ class Planetoid(InMemoryDataset):
             url = f'{self.temporal_url}/pubmed/temporal/raw'
             fs.cp(f'{url}/temporal_split_0.6_0.2.npz', self.raw_dir)
             fs.cp(f'{url}/edge_time.npy', self.raw_dir)
-            # fs.cp(f'{url}/node_time.npy', self.raw_dir)
-            # fs.cp(f'{url}/edge_directed.npy', self.raw_dir)
 
     def process(self) -> None:
         data = read_planetoid_data(self.raw_dir, self.name)
@@ -198,13 +194,13 @@ class Planetoid(InMemoryDataset):
             data.test_mask = torch.stack(test_masks, dim=1)
 
         elif self.split == 'temporal':
-            splits = np.load(osp.join(self.raw_dir, 'temporal_split_0.6_0.2.npz'))
+            splits = np.load(
+                osp.join(self.raw_dir, 'temporal_split_0.6_0.2.npz'))
             data.train_mask = torch.from_numpy(splits['train_mask'])
             data.val_mask = torch.from_numpy(splits['val_mask'])
             data.test_mask = torch.from_numpy(splits['test_mask'])
-            data.time = torch.from_numpy(np.load(osp.join(self.raw_dir, 'edge_time.npy')))
-            # data.node_time = torch.from_numpy(np.load(osp.join(self.raw_dir, 'node_time.npy')))
-            # data.directed = torch.from_numpy(np.load(osp.join(self.raw_dir, 'edge_directed.npy')))
+            data.time = torch.from_numpy(
+                np.load(osp.join(self.raw_dir, 'edge_time.npy')))
 
         data = data if self.pre_transform is None else self.pre_transform(data)
         self.save([data], self.processed_paths[0])

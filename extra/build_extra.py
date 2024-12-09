@@ -4,19 +4,19 @@ import os.path as osp
 import sys
 from pathlib import Path
 
+import torch
 import pandas as pd
 
 # Add library to Python path (required if not installed).
-PATH = osp.join(Path(__file__).parent.parent, "src")
+PATH = Path(__file__).absolute().parent.parent.__str__()
 if PATH not in sys.path:
     sys.path.append(PATH)
 
-from pubmed_temporal.build import read_nodes_time
-from pubmed_temporal.planetoid import Planetoid, ROOT
-from pubmed_temporal.split import split_train_val_test
+from pubmed_temporal.graph import read_times
+from pubmed_temporal.planetoid import Planetoid
 
 
-def build_extra(root: str = ROOT) -> list:
+def build_extra(root: str = PATH) -> list:
     """
     Build table, plot figures and save them to disk.
 
@@ -30,8 +30,38 @@ def build_extra(root: str = ROOT) -> list:
     dataset = Planetoid(root=root, name="pubmed", split="temporal")
     data = dataset[0]
 
-    train, val, test = split_train_val_test(data)
-    train_, val_, test_ = split_train_val_test(data, inductive_split=True)
+    # Transductive split.
+    train_nodes = data.edge_index[:, data.train_mask].unique()
+    val_nodes = data.edge_index[:, data.val_mask].unique()
+    test_nodes = data.edge_index[:, data.test_mask].unique()
+
+    train_mask = torch.zeros(data.num_nodes, dtype=bool)
+    val_mask = torch.zeros(data.num_nodes, dtype=bool)
+    test_mask = torch.zeros(data.num_nodes, dtype=bool)
+    train_mask[train_nodes] = True
+    val_mask[val_nodes] = True
+    test_mask[test_nodes] = True
+    train = data.subgraph(train_mask)
+    val = data.subgraph(val_mask)
+    test = data.subgraph(test_mask)
+
+    # Inductive split.
+    test_nodes = test_nodes[~torch.isin(
+        test_nodes, torch.cat([train_nodes, val_nodes]).unique())]
+    val_nodes = val_nodes[~torch.isin(
+        val_nodes, torch.cat([train_nodes, test_nodes]).unique())]
+    train_nodes = train_nodes[~torch.isin(
+        train_nodes, torch.cat([val_nodes, test_nodes]).unique())]
+
+    train_mask_ = torch.zeros(data.num_nodes, dtype=bool)
+    val_mask_ = torch.zeros(data.num_nodes, dtype=bool)
+    test_mask_ = torch.zeros(data.num_nodes, dtype=bool)
+    train_mask_[train_nodes] = True
+    val_mask_[val_nodes] = True
+    test_mask_[test_nodes] = True
+    train_ = data.subgraph(train_mask_)
+    val_ = data.subgraph(val_mask_)
+    test_ = data.subgraph(test_mask_)
 
     y = pd.Series(data.y).apply(lambda x: f"Class {x}")
     edge_time = pd.Series(data.time)
@@ -42,7 +72,7 @@ def build_extra(root: str = ROOT) -> list:
     ])
 
     # Fill missing node time with value inferred from connected paper.
-    node_time = [t for t in read_nodes_time().values()]
+    node_time = [t for t in read_times(root=root).values()]
     node_time = pd.Series(node_time).fillna(2009).astype(int)
     time = dict(enumerate(sorted(node_time.unique())))
 
