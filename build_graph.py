@@ -36,7 +36,7 @@ def argparser(args: list = argv[1:]) -> Namespace:
                         help="Set number of IDs to send to each worker at a time.",
                         type=int)
 
-    parser.add_argument("--output",
+    parser.add_argument("-o", "--output",
                         action="store",
                         default='pubmed-temporal.graphml',
                         metavar="PATH",
@@ -47,12 +47,20 @@ def argparser(args: list = argv[1:]) -> Namespace:
 
 if __name__ == "__main__":
     args = argparser()
-    download_pubmed_metadata(root=args.root, max_workers=args.max_workers, chunksize=args.chunksize)
+
+    fmt = osp.splitext(args.output)[-1].lstrip(".")
+    if f"write_{fmt}" not in dir(nx):
+        raise ValueError(
+            f"Output file format ('{fmt}') not among NetworkX supported formats: "
+            f"{[x.split('_', 1)[-1] for x in dir(nx) if x.startswith('write_')]}"
+        )
+
+    download_pubmed_metadata(root=args.root,
+                             max_workers=args.max_workers,
+                             chunksize=args.chunksize)
+
     download_graph_dataset(root=args.root)
+
     G = build_graph(root=args.root)
-    G._node = {
-        node: {k: v for k, v in attr.items() if k != "x"}
-        for node, attr in G.nodes(data=True)
-    }
-    fmt = osp.splitext(args.output)[-1]
+    list(G.nodes[node].pop("x") for node in G.nodes())
     getattr(nx, f"write_{fmt}")(G, args.output)

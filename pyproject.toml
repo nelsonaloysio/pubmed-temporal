@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pubmed-temporal"
-version = "1.1"
+version = "1.1.1"
 description = "Build PubMed temporal graph dataset using data from the PubMed API."
 requires-python = ">=3.7"
 readme = {file = "README.md", content-type = "text/markdown"}

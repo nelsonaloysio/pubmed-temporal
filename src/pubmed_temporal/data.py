@@ -17,7 +17,7 @@ def build_data(root: str) -> Dataset:
     """
     Returns PyTorch object from NetworkX graph object,
     split into train, validation, and test sets based on
-    time intervals going from 1964 (`t=0`) to 2010 (`t=45`).
+    time intervals going from 1967 (`t=0`) to 2010 (`t=42`).
 
     To build the dataset, the following steps are taken:
         1. Download original PubMed graph dataset.
@@ -35,12 +35,10 @@ def build_data(root: str) -> Dataset:
         - Validation nodes: `train_time < t < test_time`
         - Test nodes: `t >= test_time`
 
-    By default, `train_time=36` and `test_time=41`.
-
     To load the dataset, use the following code:
         >>> from pubmed_temporal import Planetoid
         >>> # from torch_geometric.datasets import Planetoid  # pytorch_geometric#9982
-        >>> dataset = Planetoid(root=..., name="pubmed", split="temporal")
+        >>> dataset = Planetoid(root=".", name="pubmed", split="temporal")
 
     :param root: Root folder to save data.
     """

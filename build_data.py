@@ -5,7 +5,8 @@ from pathlib import Path
 from sys import argv
 
 from src.pubmed_temporal.data import build_data
-from src.pubmed_temporal.graph import download_pubmed_metadata, download_graph_dataset
+from src.pubmed_temporal.graph import (download_pubmed_metadata,
+                                       download_graph_dataset)
 
 ROOT = Path(__file__).parent.absolute().__str__()
 
@@ -37,6 +38,11 @@ def argparser(args: list = argv[1:]) -> Namespace:
 
 if __name__ == "__main__":
     args = argparser()
-    download_pubmed_metadata(root=args.root, max_workers=args.max_workers, chunksize=args.chunksize)
+
+    download_pubmed_metadata(root=args.root,
+                             max_workers=args.max_workers,
+                             chunksize=args.chunksize)
+
     download_graph_dataset(root=args.root)
+
     build_data(root=args.root)
