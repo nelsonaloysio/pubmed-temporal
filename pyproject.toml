@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pubmed-temporal"
-version = "1.1.1"
+version = "1.1.2"
 description = "Build PubMed temporal graph dataset using data from the PubMed API."
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 readme = {file = "README.md", content-type = "text/markdown"}
 keywords = ["Network", "Graph", "Dynamic Graph", "Temporal Network"]
 authors = [
@@ -26,7 +26,8 @@ dependencies = [
     "networkx >=2.1",
     "pandas >=2.0.3",
     "pubmed-id >=1.0",
-    "torch_geometric >=2.4.0"
+    "torch >=2.1.2",
+    "torch_geometric >=2.3.1"
 ]
 
 [project.optional-dependencies]

@@ -62,7 +62,7 @@ print(G)
 DiGraph with 19717 nodes and 44335 edges
 ```
 
-> The directed graph contains more 11 bidirectional edges from co-citing papers.
+> The directed graph contains 11 bidirectional edges from co-citing papers.
 
 ___
 
